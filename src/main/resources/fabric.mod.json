@@ -16,10 +16,10 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.example.ExampleMod"
+			"com.yourname.RPGCraft.RPGCraft"
 		],
 		"client": [
-			"com.example.client.ExampleModClient"
+			"com.yourname.RPGCraft.client.RPGCraftClient"
 		]
 	},
 	"mixins": [
