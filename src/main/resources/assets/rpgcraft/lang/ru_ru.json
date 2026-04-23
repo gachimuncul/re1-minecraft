@@ -1,0 +1,11 @@
+{
+  "itemGroup.rpgcraft.rpgcraft_accessories": "Аксессуары RPGCraft",
+
+  "item.rpgcraft.ring_of_strength": "Кольцо силы",
+  "item.rpgcraft.amulet_of_wisdom": "Амулет мудрости",
+  "item.rpgcraft.bracelet_of_vigor": "Браслет стойкости",
+
+  "key.rpgcraft.open_character_menu": "Открыть меню персонажа",
+  "key.rpgcraft.open_skill_tree": "Открыть древо навыков",
+  "category.rpgcraft": "RPGCraft"
+}

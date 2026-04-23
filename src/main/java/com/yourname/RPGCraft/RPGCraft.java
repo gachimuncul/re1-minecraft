@@ -1,5 +1,7 @@
 package com.yourname.RPGCraft;
 
+import com.yourname.RPGCraft.item.ModItemGroups;
+import com.yourname.RPGCraft.item.ModItems;
 import net.fabricmc.api.ModInitializer;
 
 public class RPGCraft implements ModInitializer {
@@ -7,6 +9,8 @@ public class RPGCraft implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        ModItems.initialize();
+        ModItemGroups.initialize();
         System.out.println("RPGCraft initialized");
     }
 }

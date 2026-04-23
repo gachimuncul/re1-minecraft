@@ -1,20 +1,28 @@
 package com.yourname.RPGCraft.client.gui;
 
+import com.yourname.RPGCraft.accessory.AccessoryItem;
+import com.yourname.RPGCraft.accessory.AccessorySlotType;
 import com.yourname.RPGCraft.client.ClientCharacterState;
 import com.yourname.RPGCraft.player.CharacterData;
-import com.yourname.RPGCraft.player.CharacterDataProvider;
 import com.yourname.RPGCraft.stat.StatType;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import org.lwjgl.glfw.GLFW;
 
 public class CharacterScreen extends Screen {
 
     private static final int PANEL_WIDTH = 390;
     private static final int PANEL_HEIGHT = 250;
 
-    // Основная палитра
+    private enum CharacterTab {
+        CHARACTER,
+        ACCESSORIES
+    }
+
+    private CharacterTab currentTab = CharacterTab.CHARACTER;
+
+    // Палитра
     private static final int COLOR_OUTER = 0xD014100C;
     private static final int COLOR_BORDER_DARK = 0xFF2A2017;
     private static final int COLOR_BORDER_LIGHT = 0xFF6C5438;
@@ -42,6 +50,21 @@ public class CharacterScreen extends Screen {
     @Override
     protected void init() {
         super.init();
+    }
+
+    @Override
+    public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
+        if (event.key() == GLFW.GLFW_KEY_1) {
+            currentTab = CharacterTab.CHARACTER;
+            return true;
+        }
+
+        if (event.key() == GLFW.GLFW_KEY_2) {
+            currentTab = CharacterTab.ACCESSORIES;
+            return true;
+        }
+
+        return super.keyPressed(event);
     }
 
     private void drawSectionTitle(GuiGraphicsExtractor graphics, String text, int x, int y) {
@@ -85,15 +108,12 @@ public class CharacterScreen extends Screen {
         int hDir = right ? -1 : 1;
         int vDir = bottom ? -1 : 1;
 
-        // Основной угол
         graphics.fill(x, y, x + hDir * 14, y + vDir, COLOR_BORDER_LIGHT);
         graphics.fill(x, y, x + hDir, y + vDir * 14, COLOR_BORDER_LIGHT);
 
-        // Внутренний второй слой
         graphics.fill(x + hDir * 2, y + vDir * 2, x + hDir * 10, y + vDir * 3, COLOR_LINE);
         graphics.fill(x + hDir * 2, y + vDir * 2, x + hDir * 3, y + vDir * 10, COLOR_LINE);
 
-        // Декоративная "лапка"
         graphics.fill(x + hDir * 10, y + vDir * 2, x + hDir * 12, y + vDir * 4, COLOR_LINE);
         graphics.fill(x + hDir * 2, y + vDir * 10, x + hDir * 4, y + vDir * 12, COLOR_LINE);
     }
@@ -111,70 +131,39 @@ public class CharacterScreen extends Screen {
     }
 
     private void drawParchmentBackground(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2) {
-        // Базовый слой
         graphics.fill(x1, y1, x2, y2, COLOR_PARCHMENT_DARK);
-
-        // Центральное осветление
         graphics.fill(x1 + 6, y1 + 6, x2 - 6, y2 - 6, COLOR_PARCHMENT_MID);
         graphics.fill(x1 + 14, y1 + 14, x2 - 14, y2 - 14, COLOR_PARCHMENT_LIGHT);
 
-        // Лёгкая виньетка по краям
         graphics.fill(x1 + 3, y1 + 3, x2 - 3, y1 + 10, 0x5020140E);
         graphics.fill(x1 + 3, y2 - 10, x2 - 3, y2 - 3, 0x5020140E);
         graphics.fill(x1 + 3, y1 + 3, x1 + 10, y2 - 3, 0x5020140E);
         graphics.fill(x2 - 10, y1 + 3, x2 - 3, y2 - 3, 0x5020140E);
     }
 
-    @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
-        super.extractRenderState(graphics, mouseX, mouseY, delta);
+    private void drawTabHeader(GuiGraphicsExtractor graphics, int x, int y, String label, boolean active) {
+        int bg = active ? 0xFF5A4631 : 0xAA35291D;
+        int fg = active ? COLOR_TITLE : COLOR_SUBTEXT;
 
-        CharacterData data = ClientCharacterState.getCharacterData();
+        graphics.fill(x, y, x + 84, y + 18, bg);
+        graphics.fill(x + 1, y + 1, x + 83, y + 17, active ? 0xCC6C5438 : 0xAA2A2017);
+        graphics.text(this.font, label, x + 10, y + 5, fg, false);
+    }
 
-        int panelX = (this.width - PANEL_WIDTH) / 2;
-        int panelY = (this.height - PANEL_HEIGHT) / 2;
-
+    private void drawCharacterTab(GuiGraphicsExtractor graphics, CharacterData data, int panelX, int panelY) {
         int leftX = panelX + 14;
         int middleX = panelX + 138;
         int rightX = panelX + 260;
 
-        // ===== ВНЕШНИЙ ФОН =====
-        graphics.fill(panelX, panelY, panelX + PANEL_WIDTH, panelY + PANEL_HEIGHT, COLOR_OUTER);
-
-        // ===== ПЕРГАМЕНТНАЯ ОСНОВА =====
-        drawParchmentBackground(graphics, panelX + 2, panelY + 2, panelX + PANEL_WIDTH - 2, panelY + PANEL_HEIGHT - 2);
-
-        // ===== РАМКА =====
-        drawOuterFrame(graphics, panelX, panelY, panelX + PANEL_WIDTH, panelY + PANEL_HEIGHT);
-
-        // ===== ДЕКОРАТИВНЫЕ УГЛЫ =====
-        drawDecorativeCorner(graphics, panelX + 6, panelY + 6, false, false);
-        drawDecorativeCorner(graphics, panelX + PANEL_WIDTH - 6, panelY + 6, true, false);
-        drawDecorativeCorner(graphics, panelX + 6, panelY + PANEL_HEIGHT - 6, false, true);
-        drawDecorativeCorner(graphics, panelX + PANEL_WIDTH - 6, panelY + PANEL_HEIGHT - 6, true, true);
-
-        // Верхняя полоса
-        graphics.fill(panelX + 3, panelY + 3, panelX + PANEL_WIDTH - 3, panelY + 24, COLOR_HEADER);
-
-        // Секции
         graphics.fill(panelX + 8, panelY + 34, panelX + 126, panelY + 198, COLOR_SECTION);
         graphics.fill(panelX + 132, panelY + 34, panelX + 254, panelY + 198, COLOR_SECTION);
         graphics.fill(panelX + 256, panelY + 34, panelX + PANEL_WIDTH - 8, panelY + 198, COLOR_SECTION);
-
-        // Нижняя полоса
         graphics.fill(panelX + 8, panelY + 206, panelX + PANEL_WIDTH - 8, panelY + PANEL_HEIGHT - 8, COLOR_SECTION);
 
-        // Разделители
         graphics.fill(panelX + 128, panelY + 34, panelX + 129, panelY + 198, COLOR_LINE);
         graphics.fill(panelX + 254, panelY + 34, panelX + 255, panelY + 198, COLOR_LINE);
-        graphics.fill(panelX + 8, panelY + 30, panelX + PANEL_WIDTH - 8, panelY + 31, COLOR_LINE);
         graphics.fill(panelX + 8, panelY + 202, panelX + PANEL_WIDTH - 8, panelY + 203, COLOR_LINE);
 
-        // ===== ЗАГОЛОВОК =====
-        drawLine(graphics, "Character Record", panelX + 12, panelY + 8, COLOR_TITLE);
-        drawLine(graphics, "RPGCraft", panelX + PANEL_WIDTH - 58, panelY + 8, COLOR_SUBTEXT);
-
-        // ===== ЛЕВАЯ КОЛОНКА =====
         drawSectionTitle(graphics, "Character", leftX, panelY + 40);
         drawLine(graphics, "Name: " + data.getName(), leftX, panelY + 58, COLOR_TEXT);
         drawLine(graphics, "Level: " + data.getLevel(), leftX, panelY + 72, COLOR_TEXT);
@@ -188,9 +177,8 @@ public class CharacterScreen extends Screen {
 
         drawSectionTitle(graphics, "Condition", leftX, panelY + 186);
         drawLine(graphics, "Health: " + data.getCurrentHp() + "/" + data.getMaxHp(), leftX, panelY + 204, COLOR_HP);
-        // ===== СРЕДНЯЯ КОЛОНКА =====
-        drawSectionTitle(graphics, "Attributes", middleX, panelY + 40);
 
+        drawSectionTitle(graphics, "Attributes", middleX, panelY + 40);
         drawLine(graphics, formatStatMainLine("Strength", data, StatType.STRENGTH), middleX, panelY + 58, COLOR_TEXT);
         drawLine(graphics, formatStatDetailLine(data, StatType.STRENGTH), middleX, panelY + 68, COLOR_SUBTEXT);
 
@@ -203,9 +191,7 @@ public class CharacterScreen extends Screen {
         drawLine(graphics, formatStatMainLine("Vitality", data, StatType.VITALITY), middleX, panelY + 148, COLOR_TEXT);
         drawLine(graphics, formatStatDetailLine(data, StatType.VITALITY), middleX, panelY + 158, COLOR_SUBTEXT);
 
-        // ===== ПРАВАЯ КОЛОНКА =====
         drawSectionTitle(graphics, "Derived", rightX, panelY + 40);
-
         drawLine(graphics, "Max Health: " + data.getStat(StatType.MAX_HP), rightX, panelY + 58, COLOR_HP);
         drawLine(graphics, "From Vitality", rightX, panelY + 68, COLOR_SUBTEXT);
 
@@ -217,10 +203,72 @@ public class CharacterScreen extends Screen {
 
         drawLine(graphics, "Mana: " + data.getCurrentMana() + "/" + data.getMaxMana(), rightX, panelY + 152, COLOR_MANA);
         drawLine(graphics, "Stamina: " + data.getCurrentStamina() + "/" + data.getMaxStamina(), rightX, panelY + 166, COLOR_STAMINA);
+    }
 
-        // ===== НИЖНЯЯ ПОДПИСЬ =====
+    private void drawAccessoryLine(GuiGraphicsExtractor graphics, String label, AccessoryItem item, int x, int y) {
+        drawLine(graphics, label + ":", x, y, COLOR_TEXT);
+
+        String value = item == null ? "Empty" : item.getName(item.getDefaultInstance()).getString();
+        int color = item == null ? 0xFF8C8C8C : 0xFFB8915E;
+
+        drawLine(graphics, value, x + 120, y, color);
+    }
+
+    private void drawAccessoriesTab(GuiGraphicsExtractor graphics, CharacterData data, int panelX, int panelY) {
+        int contentX = panelX + 12;
+        int contentY = panelY + 36;
+
+        graphics.fill(panelX + 8, panelY + 34, panelX + PANEL_WIDTH - 8, panelY + 198, COLOR_SECTION);
+        graphics.fill(panelX + 8, panelY + 206, panelX + PANEL_WIDTH - 8, panelY + PANEL_HEIGHT - 8, COLOR_SECTION);
+        graphics.fill(panelX + 8, panelY + 202, panelX + PANEL_WIDTH - 8, panelY + 203, COLOR_LINE);
+
+        drawSectionTitle(graphics, "Accessories", contentX, contentY);
+
+        drawAccessoryLine(graphics, "Ring Left", data.getAccessoryInventory().get(AccessorySlotType.RING_LEFT), contentX, contentY + 22);
+        drawAccessoryLine(graphics, "Ring Right", data.getAccessoryInventory().get(AccessorySlotType.RING_RIGHT), contentX, contentY + 38);
+        drawAccessoryLine(graphics, "Amulet", data.getAccessoryInventory().get(AccessorySlotType.AMULET), contentX, contentY + 54);
+        drawAccessoryLine(graphics, "Bracelet Left", data.getAccessoryInventory().get(AccessorySlotType.BRACELET_LEFT), contentX, contentY + 70);
+        drawAccessoryLine(graphics, "Bracelet Right", data.getAccessoryInventory().get(AccessorySlotType.BRACELET_RIGHT), contentX, contentY + 86);
+        drawAccessoryLine(graphics, "Charm", data.getAccessoryInventory().get(AccessorySlotType.CHARM), contentX, contentY + 102);
+
+        drawSectionTitle(graphics, "Notes", contentX, contentY + 136);
+        drawLine(graphics, "Accessories are separate from armor.", contentX, contentY + 154, COLOR_SUBTEXT);
+        drawLine(graphics, "They grant passive bonuses and effects.", contentX, contentY + 168, COLOR_SUBTEXT);
+    }
+
+    @Override
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+        super.extractRenderState(graphics, mouseX, mouseY, delta);
+
+        CharacterData data = ClientCharacterState.getCharacterData();
+
+        int panelX = (this.width - PANEL_WIDTH) / 2;
+        int panelY = (this.height - PANEL_HEIGHT) / 2;
+
+        graphics.fill(panelX, panelY, panelX + PANEL_WIDTH, panelY + PANEL_HEIGHT, COLOR_OUTER);
+        drawParchmentBackground(graphics, panelX + 2, panelY + 2, panelX + PANEL_WIDTH - 2, panelY + PANEL_HEIGHT - 2);
+        drawOuterFrame(graphics, panelX, panelY, panelX + PANEL_WIDTH, panelY + PANEL_HEIGHT);
+
+        drawDecorativeCorner(graphics, panelX + 6, panelY + 6, false, false);
+        drawDecorativeCorner(graphics, panelX + PANEL_WIDTH - 6, panelY + 6, true, false);
+        drawDecorativeCorner(graphics, panelX + 6, panelY + PANEL_HEIGHT - 6, false, true);
+        drawDecorativeCorner(graphics, panelX + PANEL_WIDTH - 6, panelY + PANEL_HEIGHT - 6, true, true);
+
+        graphics.fill(panelX + 3, panelY + 3, panelX + PANEL_WIDTH - 3, panelY + 24, COLOR_HEADER);
+
+        drawLine(graphics, "Character Record", panelX + 12, panelY + 8, COLOR_TITLE);
+        drawLine(graphics, "RPGCraft", panelX + PANEL_WIDTH - 58, panelY + 8, COLOR_SUBTEXT);
+
+        drawTabHeader(graphics, panelX + 10, panelY + 26, "Character [1]", currentTab == CharacterTab.CHARACTER);
+        drawTabHeader(graphics, panelX + 98, panelY + 26, "Accessories [2]", currentTab == CharacterTab.ACCESSORIES);
+
+        if (currentTab == CharacterTab.CHARACTER) {
+            drawCharacterTab(graphics, data, panelX, panelY);
+        } else {
+            drawAccessoriesTab(graphics, data, panelX, panelY);
+        }
+
         drawLine(graphics, "Press K to close", panelX + 14, panelY + 216, COLOR_SUBTEXT);
-        drawLine(graphics, "Prototype character ledger", panelX + PANEL_WIDTH - 126, panelY + 216, 0xFF7B6B55);
     }
 
     @Override

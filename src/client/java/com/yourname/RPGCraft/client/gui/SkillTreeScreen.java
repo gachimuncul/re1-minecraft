@@ -2,13 +2,11 @@ package com.yourname.RPGCraft.client.gui;
 
 import com.yourname.RPGCraft.client.ClientCharacterState;
 import com.yourname.RPGCraft.player.CharacterData;
-import com.yourname.RPGCraft.skilltree.SkillNode;
-import com.yourname.RPGCraft.skilltree.SkillNodeType;
-import com.yourname.RPGCraft.skilltree.SkillTreeRegistry;
-import com.yourname.RPGCraft.skilltree.SkillTreeService;
+import com.yourname.RPGCraft.skilltree.*;
 import com.yourname.RPGCraft.stat.DerivedStatCalculator;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
@@ -313,8 +311,7 @@ public class SkillTreeScreen extends Screen {
         graphics.text(this.font, node.getTitle(), x + 10, y + 28, 0xFFD8C9A8, false);
         graphics.text(this.font, node.getDescription(), x + 10, y + 44, 0xFF9E8F73, false);
 
-        String typeText = "Type: " + node.getType().name();
-        graphics.text(this.font, typeText, x + 10, y + 68, 0xFFB8A98A, false);
+        graphics.text(this.font, "Type: " + formatNodeType(node.getType()), x + 10, y + 64, 0xFFB8A98A, false);
 
         boolean unlocked = data.getSkillTreeState().isUnlocked(node.getId());
         boolean canUnlock = SkillTreeService.canUnlockNode(node.getId(), data.getSkillTreeState(), data.getProgression());
@@ -333,13 +330,54 @@ public class SkillTreeScreen extends Screen {
             stateColor = 0xFF8C8C8C;
         }
 
-        graphics.text(this.font, stateText, x + 10, y + 84, stateColor, false);
-        graphics.text(this.font, "Cost: 1 point", x + 10, y + 104, 0xFFD8C9A8, false);
-        graphics.text(this.font, "Connections: " + node.getConnections().size(), x + 10, y + 120, 0xFFB8A98A, false);
-        graphics.text(this.font, "Zoom: " + String.format("%.2f", zoom), x + 10, y + 140, 0xFFB8A98A, false);
+        graphics.text(this.font, stateText, x + 10, y + 80, stateColor, false);
+        graphics.text(this.font, "Cost: 1 point", x + 10, y + 96, 0xFFD8C9A8, false);
+        graphics.text(this.font, "Links: " + node.getConnections().size(), x + 10, y + 112, 0xFFB8A98A, false);
 
-        graphics.text(this.font, "Wheel - zoom", x + 10, y + h - 30, 0xFF9E8F73, false);
-        graphics.text(this.font, "Drag - move tree", x + 10, y + h - 18, 0xFF9E8F73, false);
+        int lineY = y + 136;
+        graphics.text(this.font, "Bonuses", x + 10, lineY, 0xFFE6D7B8, true);
+        lineY += 16;
+
+        if (node.getModifiers().isEmpty() && node.getPassiveEffects().isEmpty()) {
+            graphics.text(this.font, "No bonuses", x + 10, lineY, 0xFF9E8F73, false);
+            lineY += 14;
+        } else {
+            for (var modifier : node.getModifiers()) {
+                String line = switch (modifier.getModifierType()) {
+                    case FLAT -> formatStatName(modifier.getStatType()) + " +" + modifier.getValue();
+                    case PERCENT -> formatStatName(modifier.getStatType()) + " +" + modifier.getValue() + "%";
+                };
+
+                graphics.text(this.font, line, x + 10, lineY, 0xFFD8C9A8, false);
+                lineY += 14;
+            }
+
+            for (PassiveEffect effect : node.getPassiveEffects()) {
+                graphics.text(this.font, formatPassiveEffect(effect), x + 10, lineY, 0xFFB8915E, false);
+                lineY += 14;
+            }
+        }
+
+        lineY += 8;
+        graphics.text(this.font, "Active Effects", x + 10, lineY, 0xFFE6D7B8, true);
+        lineY += 16;
+
+        if (data.getSkillTreeState().getActiveEffects().isEmpty()) {
+            graphics.text(this.font, "None", x + 10, lineY, 0xFF9E8F73, false);
+        } else {
+            for (PassiveEffect effect : data.getSkillTreeState().getActiveEffects()) {
+                graphics.text(this.font, formatPassiveEffect(effect), x + 10, lineY, 0xFFD8C9A8, false);
+                lineY += 14;
+
+                if (lineY > y + h - 36) {
+                    break;
+                }
+            }
+        }
+
+        graphics.text(this.font, "Wheel - zoom", x + 10, y + h - 42, 0xFF9E8F73, false);
+        graphics.text(this.font, "Drag - move tree", x + 10, y + h - 30, 0xFF9E8F73, false);
+        graphics.text(this.font, "R - reset tree", x + 10, y + h - 18, 0xFF9E8F73, false);
     }
 
     @Override
@@ -395,8 +433,60 @@ public class SkillTreeScreen extends Screen {
         graphics.text(this.font, "LMB node - unlock", panelX + 70, panelY + panelH - 14, 0xFF9E8F73, false);
     }
 
+    private String formatStatName(com.yourname.RPGCraft.stat.StatType statType) {
+        return switch (statType) {
+            case STRENGTH -> "Strength";
+            case AGILITY -> "Agility";
+            case INTELLIGENCE -> "Intellect";
+            case VITALITY -> "Vitality";
+            case MAX_HP -> "Max Health";
+            case MAX_MANA -> "Max Mana";
+            case MAX_STAMINA -> "Max Stamina";
+        };
+    }
+
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    private String formatNodeType(SkillNodeType type) {
+        return switch (type) {
+            case START -> "Start";
+            case SMALL -> "Small";
+            case NOTABLE -> "Notable";
+            case KEYSTONE -> "Keystone";
+        };
+    }
+
+    private String formatPassiveEffect(PassiveEffect effect) {
+        return switch (effect.getType()) {
+            case NONE -> "No special effect";
+            case BLEED_ON_HIT -> "Hits apply Bleeding";
+            case FIRE_DAMAGE_BOOST -> "Fire damage is increased";
+            case MANA_ON_KILL -> "Restore mana on kill";
+            case STAMINA_COST_REDUCTION -> "Reduced stamina costs";
+        };
+    }
+
+    @Override
+    public boolean keyPressed(KeyEvent event) {
+        if (data == null) {
+            return super.keyPressed(event);
+        }
+
+        if (event.key() == org.lwjgl.glfw.GLFW.GLFW_KEY_R) {
+            SkillTreeService.resetTree(
+                    data.getSkillTreeState(),
+                    data.getProgression(),
+                    data.getStats()
+            );
+
+            DerivedStatCalculator.applyDerivedStats(data.getStats());
+            selectedNodeId = "start";
+            return true;
+        }
+
+        return super.keyPressed(event);
     }
 }

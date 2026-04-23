@@ -1,0 +1,11 @@
+{
+  "itemGroup.rpgcraft.rpgcraft_accessories": "RPGCraft Accessories",
+
+  "item.rpgcraft.ring_of_strength": "Ring of Strength",
+  "item.rpgcraft.amulet_of_wisdom": "Amulet of Wisdom",
+  "item.rpgcraft.bracelet_of_vigor": "Bracelet of Vigor",
+
+  "key.rpgcraft.open_character_menu": "Open Character Menu",
+  "key.rpgcraft.open_skill_tree": "Open Skill Tree",
+  "category.rpgcraft": "RPGCraft"
+}

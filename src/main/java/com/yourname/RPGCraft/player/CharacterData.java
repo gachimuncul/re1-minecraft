@@ -1,15 +1,19 @@
 package com.yourname.RPGCraft.player;
 
+import com.yourname.RPGCraft.accessory.AccessoryInventory;
 import com.yourname.RPGCraft.skilltree.SkillTreeState;
 import com.yourname.RPGCraft.stat.StatContainer;
 import com.yourname.RPGCraft.stat.StatType;
 
 public class CharacterData {
+
     private final String name;
     private final String rank;
+
     private final StatContainer stats;
     private final ProgressionData progression;
     private final SkillTreeState skillTreeState;
+    private final AccessoryInventory accessoryInventory;
 
     private final int currentHp;
     private final int maxHp;
@@ -26,6 +30,7 @@ public class CharacterData {
             StatContainer stats,
             ProgressionData progression,
             SkillTreeState skillTreeState,
+            AccessoryInventory accessoryInventory,
             int currentHp,
             int maxHp,
             int currentMana,
@@ -38,6 +43,7 @@ public class CharacterData {
         this.stats = stats;
         this.progression = progression;
         this.skillTreeState = skillTreeState;
+        this.accessoryInventory = accessoryInventory;
         this.currentHp = currentHp;
         this.maxHp = maxHp;
         this.currentMana = currentMana;
@@ -48,22 +54,6 @@ public class CharacterData {
 
     public String getName() {
         return name;
-    }
-
-    public int getLevel() {
-        return progression.getLevel();
-    }
-
-    public int getExperience() {
-        return progression.getExperience();
-    }
-
-    public int getRequiredExperience() {
-        return LevelSystem.getRequiredExperienceForLevel(getLevel());
-    }
-
-    public int getPassivePoints() {
-        return progression.getPassivePoints();
     }
 
     public String getRank() {
@@ -80,6 +70,26 @@ public class CharacterData {
 
     public SkillTreeState getSkillTreeState() {
         return skillTreeState;
+    }
+
+    public AccessoryInventory getAccessoryInventory() {
+        return accessoryInventory;
+    }
+
+    public int getLevel() {
+        return progression.getLevel();
+    }
+
+    public int getExperience() {
+        return progression.getExperience();
+    }
+
+    public int getRequiredExperience() {
+        return LevelSystem.getRequiredExperienceForLevel(getLevel());
+    }
+
+    public int getPassivePoints() {
+        return progression.getPassivePoints();
     }
 
     public int getStat(StatType statType) {

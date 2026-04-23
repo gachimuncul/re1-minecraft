@@ -33,4 +33,15 @@ public class SkillTreeState {
     public void addPassiveEffect(PassiveEffect effect) {
         activeEffects.add(effect);
     }
+
+    public int reset() {
+        int spentPoints = Math.max(0, unlockedNodes.size() - 1);
+
+        unlockedNodes.clear();
+        unlockedNodes.add("start");
+
+        activeEffects.clear();
+
+        return spentPoints;
+    }
 }

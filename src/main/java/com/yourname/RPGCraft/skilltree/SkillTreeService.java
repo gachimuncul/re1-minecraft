@@ -60,4 +60,16 @@ public class SkillTreeService {
 
         return true;
     }
+
+    public static void resetTree(SkillTreeState state, ProgressionData progression, StatContainer stats) {
+        int refundedPoints = state.reset();
+
+        progression.addPassivePoints(refundedPoints);
+
+        for (SkillNode node : SkillTreeRegistry.NODES.values()) {
+            for (StatModifier modifier : node.getModifiers()) {
+                stats.removeModifiersBySource(modifier.getSource());
+            }
+        }
+    }
 }
