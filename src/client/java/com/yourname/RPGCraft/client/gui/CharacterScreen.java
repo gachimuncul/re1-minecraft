@@ -1,5 +1,6 @@
 package com.yourname.RPGCraft.client.gui;
 
+import com.yourname.RPGCraft.client.ClientCharacterState;
 import com.yourname.RPGCraft.player.CharacterData;
 import com.yourname.RPGCraft.player.CharacterDataProvider;
 import com.yourname.RPGCraft.stat.StatType;
@@ -13,12 +14,18 @@ public class CharacterScreen extends Screen {
     private static final int PANEL_WIDTH = 390;
     private static final int PANEL_HEIGHT = 250;
 
-    // Цвета под тёмное фэнтези / средневековый вайб
-    private static final int COLOR_OUTER = 0xD01A1410;
-    private static final int COLOR_INNER = 0xE0262018;
-    private static final int COLOR_HEADER = 0xFF3A2C1F;
-    private static final int COLOR_SECTION = 0x9034261C;
-    private static final int COLOR_LINE = 0xFF5A4631;
+    // Основная палитра
+    private static final int COLOR_OUTER = 0xD014100C;
+    private static final int COLOR_BORDER_DARK = 0xFF2A2017;
+    private static final int COLOR_BORDER_LIGHT = 0xFF6C5438;
+
+    private static final int COLOR_PARCHMENT_DARK = 0xE02A2218;
+    private static final int COLOR_PARCHMENT_MID = 0xE0342A1E;
+    private static final int COLOR_PARCHMENT_LIGHT = 0xC0453828;
+
+    private static final int COLOR_HEADER = 0xFF3B2D20;
+    private static final int COLOR_SECTION = 0xA035291D;
+    private static final int COLOR_LINE = 0xFF5C4730;
 
     private static final int COLOR_TITLE = 0xFFE6D7B8;
     private static final int COLOR_TEXT = 0xFFD8C9A8;
@@ -74,15 +81,55 @@ public class CharacterScreen extends Screen {
         return builder.toString();
     }
 
+    private void drawDecorativeCorner(GuiGraphicsExtractor graphics, int x, int y, boolean right, boolean bottom) {
+        int hDir = right ? -1 : 1;
+        int vDir = bottom ? -1 : 1;
+
+        // Основной угол
+        graphics.fill(x, y, x + hDir * 14, y + vDir, COLOR_BORDER_LIGHT);
+        graphics.fill(x, y, x + hDir, y + vDir * 14, COLOR_BORDER_LIGHT);
+
+        // Внутренний второй слой
+        graphics.fill(x + hDir * 2, y + vDir * 2, x + hDir * 10, y + vDir * 3, COLOR_LINE);
+        graphics.fill(x + hDir * 2, y + vDir * 2, x + hDir * 3, y + vDir * 10, COLOR_LINE);
+
+        // Декоративная "лапка"
+        graphics.fill(x + hDir * 10, y + vDir * 2, x + hDir * 12, y + vDir * 4, COLOR_LINE);
+        graphics.fill(x + hDir * 2, y + vDir * 10, x + hDir * 4, y + vDir * 12, COLOR_LINE);
+    }
+
+    private void drawOuterFrame(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2) {
+        graphics.fill(x1, y1, x2, y1 + 1, COLOR_BORDER_DARK);
+        graphics.fill(x1, y2 - 1, x2, y2, COLOR_BORDER_DARK);
+        graphics.fill(x1, y1, x1 + 1, y2, COLOR_BORDER_DARK);
+        graphics.fill(x2 - 1, y1, x2, y2, COLOR_BORDER_DARK);
+
+        graphics.fill(x1 + 1, y1 + 1, x2 - 1, y1 + 2, COLOR_BORDER_LIGHT);
+        graphics.fill(x1 + 1, y2 - 2, x2 - 1, y2 - 1, COLOR_BORDER_LIGHT);
+        graphics.fill(x1 + 1, y1 + 1, x1 + 2, y2 - 1, COLOR_BORDER_LIGHT);
+        graphics.fill(x2 - 2, y1 + 1, x2 - 1, y2 - 1, COLOR_BORDER_LIGHT);
+    }
+
+    private void drawParchmentBackground(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2) {
+        // Базовый слой
+        graphics.fill(x1, y1, x2, y2, COLOR_PARCHMENT_DARK);
+
+        // Центральное осветление
+        graphics.fill(x1 + 6, y1 + 6, x2 - 6, y2 - 6, COLOR_PARCHMENT_MID);
+        graphics.fill(x1 + 14, y1 + 14, x2 - 14, y2 - 14, COLOR_PARCHMENT_LIGHT);
+
+        // Лёгкая виньетка по краям
+        graphics.fill(x1 + 3, y1 + 3, x2 - 3, y1 + 10, 0x5020140E);
+        graphics.fill(x1 + 3, y2 - 10, x2 - 3, y2 - 3, 0x5020140E);
+        graphics.fill(x1 + 3, y1 + 3, x1 + 10, y2 - 3, 0x5020140E);
+        graphics.fill(x2 - 10, y1 + 3, x2 - 3, y2 - 3, 0x5020140E);
+    }
+
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         super.extractRenderState(graphics, mouseX, mouseY, delta);
 
-        String playerName = Minecraft.getInstance().player != null
-                ? Minecraft.getInstance().player.getName().getString()
-                : "Unknown";
-
-        CharacterData data = CharacterDataProvider.getTestData(playerName);
+        CharacterData data = ClientCharacterState.getCharacterData();
 
         int panelX = (this.width - PANEL_WIDTH) / 2;
         int panelY = (this.height - PANEL_HEIGHT) / 2;
@@ -91,12 +138,23 @@ public class CharacterScreen extends Screen {
         int middleX = panelX + 138;
         int rightX = panelX + 260;
 
-        // ===== ОСНОВНОЙ ФОН =====
+        // ===== ВНЕШНИЙ ФОН =====
         graphics.fill(panelX, panelY, panelX + PANEL_WIDTH, panelY + PANEL_HEIGHT, COLOR_OUTER);
-        graphics.fill(panelX + 2, panelY + 2, panelX + PANEL_WIDTH - 2, panelY + PANEL_HEIGHT - 2, COLOR_INNER);
+
+        // ===== ПЕРГАМЕНТНАЯ ОСНОВА =====
+        drawParchmentBackground(graphics, panelX + 2, panelY + 2, panelX + PANEL_WIDTH - 2, panelY + PANEL_HEIGHT - 2);
+
+        // ===== РАМКА =====
+        drawOuterFrame(graphics, panelX, panelY, panelX + PANEL_WIDTH, panelY + PANEL_HEIGHT);
+
+        // ===== ДЕКОРАТИВНЫЕ УГЛЫ =====
+        drawDecorativeCorner(graphics, panelX + 6, panelY + 6, false, false);
+        drawDecorativeCorner(graphics, panelX + PANEL_WIDTH - 6, panelY + 6, true, false);
+        drawDecorativeCorner(graphics, panelX + 6, panelY + PANEL_HEIGHT - 6, false, true);
+        drawDecorativeCorner(graphics, panelX + PANEL_WIDTH - 6, panelY + PANEL_HEIGHT - 6, true, true);
 
         // Верхняя полоса
-        graphics.fill(panelX, panelY, panelX + PANEL_WIDTH, panelY + 24, COLOR_HEADER);
+        graphics.fill(panelX + 3, panelY + 3, panelX + PANEL_WIDTH - 3, panelY + 24, COLOR_HEADER);
 
         // Секции
         graphics.fill(panelX + 8, panelY + 34, panelX + 126, panelY + 198, COLOR_SECTION);
@@ -120,15 +178,16 @@ public class CharacterScreen extends Screen {
         drawSectionTitle(graphics, "Character", leftX, panelY + 40);
         drawLine(graphics, "Name: " + data.getName(), leftX, panelY + 58, COLOR_TEXT);
         drawLine(graphics, "Level: " + data.getLevel(), leftX, panelY + 72, COLOR_TEXT);
-        drawLine(graphics, "Rank: " + data.getRank(), leftX, panelY + 86, COLOR_TEXT);
+        drawLine(graphics, "Exp: " + data.getExperience() + "/" + data.getRequiredExperience(), leftX, panelY + 86, COLOR_TEXT);
+        drawLine(graphics, "Points: " + data.getPassivePoints(), leftX, panelY + 100, COLOR_TEXT);
+        drawLine(graphics, "Rank: " + data.getRank(), leftX, panelY + 114, COLOR_TEXT);
 
-        drawLine(graphics, "Class: None", leftX, panelY + 110, COLOR_SUBTEXT);
-        drawLine(graphics, "Origin: Unknown", leftX, panelY + 124, COLOR_SUBTEXT);
-        drawLine(graphics, "Faction: None", leftX, panelY + 138, COLOR_SUBTEXT);
+        drawLine(graphics, "Class: None", leftX, panelY + 138, COLOR_SUBTEXT);
+        drawLine(graphics, "Origin: Unknown", leftX, panelY + 152, COLOR_SUBTEXT);
+        drawLine(graphics, "Faction: None", leftX, panelY + 166, COLOR_SUBTEXT);
 
-        drawSectionTitle(graphics, "Condition", leftX, panelY + 162);
-        drawLine(graphics, "Health: " + data.getCurrentHp() + "/" + data.getMaxHp(), leftX, panelY + 180, COLOR_HP);
-
+        drawSectionTitle(graphics, "Condition", leftX, panelY + 186);
+        drawLine(graphics, "Health: " + data.getCurrentHp() + "/" + data.getMaxHp(), leftX, panelY + 204, COLOR_HP);
         // ===== СРЕДНЯЯ КОЛОНКА =====
         drawSectionTitle(graphics, "Attributes", middleX, panelY + 40);
 
@@ -159,7 +218,7 @@ public class CharacterScreen extends Screen {
         drawLine(graphics, "Mana: " + data.getCurrentMana() + "/" + data.getMaxMana(), rightX, panelY + 152, COLOR_MANA);
         drawLine(graphics, "Stamina: " + data.getCurrentStamina() + "/" + data.getMaxStamina(), rightX, panelY + 166, COLOR_STAMINA);
 
-        // ===== НИЖНЯЯ СТРОКА =====
+        // ===== НИЖНЯЯ ПОДПИСЬ =====
         drawLine(graphics, "Press K to close", panelX + 14, panelY + 216, COLOR_SUBTEXT);
         drawLine(graphics, "Prototype character ledger", panelX + PANEL_WIDTH - 126, panelY + 216, 0xFF7B6B55);
     }

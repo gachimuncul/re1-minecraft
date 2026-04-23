@@ -1,13 +1,15 @@
 package com.yourname.RPGCraft.player;
 
+import com.yourname.RPGCraft.skilltree.SkillTreeState;
 import com.yourname.RPGCraft.stat.StatContainer;
 import com.yourname.RPGCraft.stat.StatType;
 
 public class CharacterData {
     private final String name;
-    private final int level;
     private final String rank;
     private final StatContainer stats;
+    private final ProgressionData progression;
+    private final SkillTreeState skillTreeState;
 
     private final int currentHp;
     private final int maxHp;
@@ -20,9 +22,10 @@ public class CharacterData {
 
     public CharacterData(
             String name,
-            int level,
             String rank,
             StatContainer stats,
+            ProgressionData progression,
+            SkillTreeState skillTreeState,
             int currentHp,
             int maxHp,
             int currentMana,
@@ -31,9 +34,10 @@ public class CharacterData {
             int maxStamina
     ) {
         this.name = name;
-        this.level = level;
         this.rank = rank;
         this.stats = stats;
+        this.progression = progression;
+        this.skillTreeState = skillTreeState;
         this.currentHp = currentHp;
         this.maxHp = maxHp;
         this.currentMana = currentMana;
@@ -47,7 +51,19 @@ public class CharacterData {
     }
 
     public int getLevel() {
-        return level;
+        return progression.getLevel();
+    }
+
+    public int getExperience() {
+        return progression.getExperience();
+    }
+
+    public int getRequiredExperience() {
+        return LevelSystem.getRequiredExperienceForLevel(getLevel());
+    }
+
+    public int getPassivePoints() {
+        return progression.getPassivePoints();
     }
 
     public String getRank() {
@@ -58,8 +74,28 @@ public class CharacterData {
         return stats;
     }
 
+    public ProgressionData getProgression() {
+        return progression;
+    }
+
+    public SkillTreeState getSkillTreeState() {
+        return skillTreeState;
+    }
+
     public int getStat(StatType statType) {
         return stats.getStat(statType);
+    }
+
+    public int getBaseStat(StatType statType) {
+        return stats.getBaseStat(statType);
+    }
+
+    public int getFlatModifierStat(StatType statType) {
+        return stats.getFlatModifierTotal(statType);
+    }
+
+    public int getPercentModifierStat(StatType statType) {
+        return stats.getPercentModifierTotal(statType);
     }
 
     public int getCurrentHp() {
@@ -84,17 +120,5 @@ public class CharacterData {
 
     public int getMaxStamina() {
         return maxStamina;
-    }
-
-    public int getBaseStat(StatType statType) {
-        return stats.getBaseStat(statType);
-    }
-
-    public int getPercentModifierStat(StatType statType) {
-        return stats.getPercentModifierTotal(statType);
-    }
-
-    public int getFlatModifierStat(StatType statType) {
-        return stats.getFlatModifierTotal(statType);
     }
 }

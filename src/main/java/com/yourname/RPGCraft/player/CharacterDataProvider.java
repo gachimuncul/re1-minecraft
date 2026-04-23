@@ -1,5 +1,7 @@
 package com.yourname.RPGCraft.player;
 
+import com.yourname.RPGCraft.skilltree.SkillTreeService;
+import com.yourname.RPGCraft.skilltree.SkillTreeState;
 import com.yourname.RPGCraft.stat.DerivedStatCalculator;
 import com.yourname.RPGCraft.stat.StatContainer;
 import com.yourname.RPGCraft.stat.StatModifier;
@@ -20,6 +22,12 @@ public class CharacterDataProvider {
         stats.addModifier(new StatModifier(StatType.VITALITY, StatModifierType.FLAT, 3, "blessing"));
         stats.addModifier(new StatModifier(StatType.STRENGTH, StatModifierType.PERCENT, 20, "warrior_aura"));
 
+        ProgressionData progression = new ProgressionData(3, 40, 2);
+        SkillTreeState skillTreeState = new SkillTreeState();
+
+        SkillTreeService.unlockNode("strength_small", skillTreeState, progression, stats);
+        SkillTreeService.unlockNode("strength_notable", skillTreeState, progression, stats);
+
         DerivedStatCalculator.applyDerivedStats(stats);
 
         int maxHp = stats.getStat(StatType.MAX_HP);
@@ -28,9 +36,10 @@ public class CharacterDataProvider {
 
         return new CharacterData(
                 playerName,
-                1,
                 "Wanderer",
                 stats,
+                progression,
+                skillTreeState,
                 maxHp,
                 maxHp,
                 maxMana,
