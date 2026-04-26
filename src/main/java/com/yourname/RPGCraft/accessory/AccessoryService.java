@@ -3,42 +3,42 @@ package com.yourname.RPGCraft.accessory;
 import com.yourname.RPGCraft.stat.DerivedStatCalculator;
 import com.yourname.RPGCraft.stat.StatContainer;
 import com.yourname.RPGCraft.stat.StatModifier;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
 
 public class AccessoryService {
 
     public static boolean equipFirstAvailableSlot(AccessoryInventory inventory, StatContainer stats, AccessoryItem item) {
         AccessorySlotType slot = AccessorySlotResolver.findFreeSlot(inventory, item.getAccessoryType());
+
         if (slot == null) {
             return false;
         }
 
         inventory.set(slot, item);
-        applyModifiers(stats, item);
+
+        for (StatModifier modifier : item.getModifiers()) {
+            stats.addModifier(modifier);
+        }
+
         DerivedStatCalculator.applyDerivedStats(stats);
         return true;
     }
 
     public static void unequip(AccessoryInventory inventory, StatContainer stats, AccessorySlotType slot) {
+        unequipAndReturn(inventory, stats, slot);
+    }
+
+    public static AccessoryItem unequipAndReturn(AccessoryInventory inventory, StatContainer stats, AccessorySlotType slot) {
         AccessoryItem removed = inventory.remove(slot);
+
         if (removed == null) {
-            return;
+            return null;
         }
 
-        String source = getAccessorySourceId(removed);
-        stats.removeModifiersBySource(source);
+        for (StatModifier modifier : removed.getModifiers()) {
+            stats.removeModifiersBySource(modifier.getSource());
+        }
+
         DerivedStatCalculator.applyDerivedStats(stats);
-    }
-
-    private static void applyModifiers(StatContainer stats, AccessoryItem item) {
-        for (StatModifier modifier : item.getModifiers()) {
-            stats.addModifier(modifier);
-        }
-    }
-
-    public static String getAccessorySourceId(AccessoryItem item) {
-        Identifier id = BuiltInRegistries.ITEM.getKey(item);
-        return id == null ? "unknown_accessory" : id.toString();
+        return removed;
     }
 }

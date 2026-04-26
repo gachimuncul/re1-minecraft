@@ -1,8 +1,8 @@
 package com.yourname.RPGCraft.client;
 
-import com.yourname.RPGCraft.client.ClientCharacterState;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.yourname.RPGCraft.RPGCraft;
+import com.yourname.RPGCraft.accessory.AccessoryEffectHandler;
 import com.yourname.RPGCraft.client.gui.CharacterScreen;
 import com.yourname.RPGCraft.client.gui.SkillTreeScreen;
 import net.fabricmc.api.ClientModInitializer;
@@ -19,9 +19,6 @@ public class RPGCraftClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-
-        final boolean[] initializedForWorld = {false};
-
         KeyMapping.Category category = KeyMapping.Category.register(
                 Identifier.fromNamespaceAndPath(RPGCraft.MOD_ID, "general")
         );
@@ -45,12 +42,8 @@ public class RPGCraftClient implements ClientModInitializer {
         );
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-
-            if (client.player == null) {
-                initializedForWorld[0] = false;
-            } else if (!initializedForWorld[0]) {
-                initializedForWorld[0] = true;
-                ClientCharacterState.reset();
+            if (client.player != null) {
+                AccessoryEffectHandler.tick(client.player);
             }
 
             while (openCharacterMenuKey.consumeClick()) {

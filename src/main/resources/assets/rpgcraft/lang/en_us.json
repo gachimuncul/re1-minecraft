@@ -7,5 +7,7 @@
 
   "key.rpgcraft.open_character_menu": "Open Character Menu",
   "key.rpgcraft.open_skill_tree": "Open Skill Tree",
-  "category.rpgcraft": "RPGCraft"
+  "category.rpgcraft": "RPGCraft",
+
+  "item.rpgcraft.iris_signet": "Iris' Signet"
 }

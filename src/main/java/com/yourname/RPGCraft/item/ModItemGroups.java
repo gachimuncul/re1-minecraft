@@ -31,6 +31,7 @@ public class ModItemGroups {
                             output.accept(new ItemStack(ModItems.RING_OF_STRENGTH));
                             output.accept(new ItemStack(ModItems.AMULET_OF_WISDOM));
                             output.accept(new ItemStack(ModItems.BRACELET_OF_VIGOR));
+                            output.accept(new ItemStack(ModItems.IRIS_SIGNET));
                         })
                         .build()
         );

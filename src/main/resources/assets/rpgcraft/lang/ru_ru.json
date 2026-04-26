@@ -7,5 +7,7 @@
 
   "key.rpgcraft.open_character_menu": "Открыть меню персонажа",
   "key.rpgcraft.open_skill_tree": "Открыть древо навыков",
-  "category.rpgcraft": "RPGCraft"
+  "category.rpgcraft": "RPGCraft",
+
+  "item.rpgcraft.iris_signet": "Печать Ириса"
 }

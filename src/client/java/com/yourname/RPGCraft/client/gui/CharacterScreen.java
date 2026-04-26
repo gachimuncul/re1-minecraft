@@ -1,13 +1,17 @@
 package com.yourname.RPGCraft.client.gui;
 
 import com.yourname.RPGCraft.accessory.AccessoryItem;
+import com.yourname.RPGCraft.accessory.AccessoryService;
 import com.yourname.RPGCraft.accessory.AccessorySlotType;
 import com.yourname.RPGCraft.client.ClientCharacterState;
 import com.yourname.RPGCraft.player.CharacterData;
 import com.yourname.RPGCraft.stat.StatType;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 
 public class CharacterScreen extends Screen {
@@ -234,6 +238,89 @@ public class CharacterScreen extends Screen {
         drawSectionTitle(graphics, "Notes", contentX, contentY + 136);
         drawLine(graphics, "Accessories are separate from armor.", contentX, contentY + 154, COLOR_SUBTEXT);
         drawLine(graphics, "They grant passive bonuses and effects.", contentX, contentY + 168, COLOR_SUBTEXT);
+    }
+
+    private AccessorySlotType getAccessorySlotAt(int mouseX, int mouseY, int panelX, int panelY) {
+        int contentX = panelX + 12;
+        int contentY = panelY + 36;
+
+        int startY = contentY + 22;
+        int lineHeight = 16;
+
+        if (mouseX < contentX || mouseX > contentX + 260) {
+            return null;
+        }
+
+        if (mouseY >= startY && mouseY < startY + lineHeight) {
+            return AccessorySlotType.RING_LEFT;
+        }
+
+        if (mouseY >= startY + 16 && mouseY < startY + 16 + lineHeight) {
+            return AccessorySlotType.RING_RIGHT;
+        }
+
+        if (mouseY >= startY + 32 && mouseY < startY + 32 + lineHeight) {
+            return AccessorySlotType.AMULET;
+        }
+
+        if (mouseY >= startY + 48 && mouseY < startY + 48 + lineHeight) {
+            return AccessorySlotType.BRACELET_LEFT;
+        }
+
+        if (mouseY >= startY + 64 && mouseY < startY + 64 + lineHeight) {
+            return AccessorySlotType.BRACELET_RIGHT;
+        }
+
+        if (mouseY >= startY + 80 && mouseY < startY + 80 + lineHeight) {
+            return AccessorySlotType.CHARM;
+        }
+
+        return null;
+    }
+
+    @Override
+    public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
+        if (currentTab != CharacterTab.ACCESSORIES) {
+            return super.mouseClicked(event, doubleClick);
+        }
+
+        int mouseX = (int) event.x();
+        int mouseY = (int) event.y();
+
+        int panelX = (this.width - PANEL_WIDTH) / 2;
+        int panelY = (this.height - PANEL_HEIGHT) / 2;
+
+        AccessorySlotType slot = getAccessorySlotAt(mouseX, mouseY, panelX, panelY);
+
+        if (slot == null) {
+            return super.mouseClicked(event, doubleClick);
+        }
+
+        CharacterData data = ClientCharacterState.getCharacterData();
+
+        AccessoryItem removed = AccessoryService.unequipAndReturn(
+                data.getAccessoryInventory(),
+                data.getStats(),
+                slot
+        );
+
+        if (removed == null) {
+            return true;
+        }
+
+        Player player = Minecraft.getInstance().player;
+
+        if (player != null) {
+            ItemStack stack = new ItemStack(removed);
+
+            boolean added = player.getInventory().add(stack);
+
+            if (!added) {
+                player.drop(stack, false);
+            }
+        }
+
+        return true;
     }
 
     @Override

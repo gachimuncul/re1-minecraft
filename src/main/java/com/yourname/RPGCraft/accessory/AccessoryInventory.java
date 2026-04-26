@@ -1,5 +1,6 @@
 package com.yourname.RPGCraft.accessory;
 
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -19,7 +20,11 @@ public class AccessoryInventory {
         return equipped.remove(slot);
     }
 
-    public Map<AccessorySlotType, AccessoryItem> getAll() {
+    public Map<AccessorySlotType, AccessoryItem> getAllEquipped() {
         return equipped;
+    }
+
+    public Collection<AccessoryItem> getAll() {
+        return equipped.values();
     }
 }
