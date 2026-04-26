@@ -16,6 +16,7 @@ public class RPGCraftClient implements ClientModInitializer {
 
     private static KeyMapping openCharacterMenuKey;
     private static KeyMapping openSkillTreeKey;
+    private static KeyMapping activateIrisSignetKey;
 
     @Override
     public void onInitializeClient() {
@@ -37,6 +38,15 @@ public class RPGCraftClient implements ClientModInitializer {
                         "key.rpgcraft.open_skill_tree",
                         InputConstants.Type.KEYSYM,
                         GLFW.GLFW_KEY_J,
+                        category
+                )
+        );
+
+        activateIrisSignetKey = KeyMappingHelper.registerKeyMapping(
+                new KeyMapping(
+                        "key.rpgcraft.activate_iris_signet",
+                        InputConstants.Type.KEYSYM,
+                        GLFW.GLFW_KEY_V,
                         category
                 )
         );
@@ -67,6 +77,12 @@ public class RPGCraftClient implements ClientModInitializer {
                     client.setScreen(null);
                 } else {
                     client.setScreen(new SkillTreeScreen());
+                }
+            }
+
+            while (activateIrisSignetKey.consumeClick()) {
+                if (client.player != null) {
+                    com.yourname.RPGCraft.accessory.IrisSignetAbility.activate(client.player);
                 }
             }
         });

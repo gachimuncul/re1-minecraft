@@ -86,15 +86,27 @@ public class AccessoryEffectHandler {
         }
     }
 
+    private static final String[] IRIS_WHISPERS = {
+            "They still march behind you...",
+            "Do not fear the dead. Fear their master.",
+            "The fourth crown is not buried.",
+            "Iris remembers your oath.",
+            "Two shadows await your command."
+    };
+
     private static void playIrisWhispers(Player player) {
-        if (RANDOM.nextFloat() > 0.0025f) {
+        if (RANDOM.nextFloat() > 0.0015f) {
             return;
         }
 
+        String whisper = IRIS_WHISPERS[RANDOM.nextInt(IRIS_WHISPERS.length)];
+
+        player.sendSystemMessage(net.minecraft.network.chat.Component.literal("§9§o" + whisper));
+
         player.playSound(
                 SoundEvents.SOUL_ESCAPE.value(),
-                0.25f,
-                0.45f + RANDOM.nextFloat() * 0.35f
+                0.18f,
+                0.25f + RANDOM.nextFloat() * 0.35f
         );
     }
 
