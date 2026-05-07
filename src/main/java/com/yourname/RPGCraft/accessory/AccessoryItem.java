@@ -1,5 +1,6 @@
 package com.yourname.RPGCraft.accessory;
 
+import com.yourname.RPGCraft.item.ModItems;
 import com.yourname.RPGCraft.player.CharacterData;
 import com.yourname.RPGCraft.player.PlayerCharacterDataManager;
 import com.yourname.RPGCraft.stat.StatModifier;
@@ -67,6 +68,10 @@ public class AccessoryItem extends Item {
             return InteractionResult.FAIL;
         }
 
+        if (this == ModItems.IRIS_SIGNET) {
+            IrisSignetProgressionService.refreshForPlayer(user);
+        }
+
         ItemStack stack = user.getItemInHand(hand);
 
         if (!user.getAbilities().instabuild) {
@@ -77,7 +82,79 @@ public class AccessoryItem extends Item {
         return InteractionResult.SUCCESS;
     }
 
+    @Override
+    public void appendHoverText(
+            ItemStack itemStack,
+            TooltipContext context,
+            TooltipDisplay display,
+            Consumer<Component> builder,
+            TooltipFlag tooltipFlag
+    ) {
+        builder.accept(Component.literal(getTypeText())
+                .withStyle(Style.EMPTY.withColor(0xFF9E8F73)));
 
+        builder.accept(Component.literal("Rarity: " + rarity.getDisplayName())
+                .withStyle(Style.EMPTY.withColor(rarity.getColor())));
+
+        if (this == ModItems.IRIS_SIGNET) {
+            appendIrisProgressionTooltip(builder);
+        }
+
+        builder.accept(Component.literal(" "));
+
+        List<StatModifier> tooltipModifiers = modifiers;
+
+        if (this == ModItems.IRIS_SIGNET) {
+            AccessoryLevelData data = getClientIrisDataSafe();
+            int level = data == null ? 1 : data.getLevel();
+            tooltipModifiers = IrisSignetScaling.getStatModifiersForLevel(level);
+        }
+
+        if (tooltipModifiers.isEmpty()) {
+            builder.accept(Component.literal("No bonuses")
+                    .withStyle(Style.EMPTY.withColor(0xFF8C8C8C)));
+        } else {
+            for (StatModifier modifier : tooltipModifiers) {
+                builder.accept(Component.literal(formatModifier(modifier))
+                        .withStyle(Style.EMPTY.withColor(0xFFD8C9A8)));
+            }
+        }
+    }
+
+    private void appendIrisProgressionTooltip(Consumer<Component> builder) {
+        AccessoryLevelData data = getClientIrisDataSafe();
+
+        if (data == null) {
+            builder.accept(Component.literal("Level: ?/5")
+                    .withStyle(Style.EMPTY.withColor(0xFF6FA8FF)));
+            return;
+        }
+
+        builder.accept(Component.literal("Level: " + data.getLevel() + "/" + data.getMaxLevel())
+                .withStyle(Style.EMPTY.withColor(0xFF6FA8FF)));
+
+        if (data.isMaxLevel()) {
+            builder.accept(Component.literal("Fully awakened")
+                    .withStyle(Style.EMPTY.withColor(0xFFE0A84F)));
+        } else {
+            builder.accept(Component.literal("Exp: " + data.getExperience() + "/" + data.getRequiredExperience())
+                    .withStyle(Style.EMPTY.withColor(0xFF9E8F73)));
+        }
+    }
+
+    private AccessoryLevelData getClientIrisDataSafe() {
+        try {
+            Class<?> clazz = Class.forName("com.yourname.RPGCraft.client.ClientTooltipData");
+            Object result = clazz.getMethod("getIrisSignetData").invoke(null);
+
+            if (result instanceof AccessoryLevelData data) {
+                return data;
+            }
+        } catch (Exception ignored) {
+        }
+
+        return null;
+    }
 
     private String getTypeText() {
         return switch (accessoryType) {
@@ -119,33 +196,7 @@ public class AccessoryItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack itemStack, TooltipContext context, TooltipDisplay display, Consumer<Component> builder, TooltipFlag tooltipFlag) {
-        builder.accept(Component.literal(getTypeText())
-                .withStyle(Style.EMPTY.withColor(0xFF9E8F73)));
-
-        builder.accept(Component.literal("Rarity: " + rarity.getDisplayName())
-                .withStyle(Style.EMPTY.withColor(rarity.getColor())));
-
-        builder.accept(Component.literal(" "));
-
-        if (modifiers.isEmpty()) {
-            builder.accept(Component.literal("No bonuses")
-                    .withStyle(Style.EMPTY.withColor(0xFF8C8C8C)));
-        } else {
-            for (StatModifier modifier : modifiers) {
-                builder.accept(Component.literal(formatModifier(modifier))
-                        .withStyle(Style.EMPTY.withColor(0xFFD8C9A8)));
-            }
-        }
-
-        builder.accept(Component.literal(" "));
-        builder.accept(Component.literal("Right-click to equip")
-                .withStyle(Style.EMPTY.withColor(0xFFB8915E)));
-    }
-
-    @Override
     public Component getName(ItemStack stack) {
-
         if (rarity == AccessoryRarity.LEGENDARY) {
             return super.getName(stack)
                     .copy()

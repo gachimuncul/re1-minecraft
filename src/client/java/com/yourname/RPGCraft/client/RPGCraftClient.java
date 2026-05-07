@@ -5,9 +5,13 @@ import com.yourname.RPGCraft.RPGCraft;
 import com.yourname.RPGCraft.accessory.AccessoryEffectHandler;
 import com.yourname.RPGCraft.client.gui.CharacterScreen;
 import com.yourname.RPGCraft.client.gui.SkillTreeScreen;
+import com.yourname.RPGCraft.entity.ModEntities;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.minecraft.client.renderer.entity.StrayRenderer;
+import com.yourname.RPGCraft.client.render.EmptyEntityRenderer;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
@@ -51,6 +55,16 @@ public class RPGCraftClient implements ClientModInitializer {
                 )
         );
 
+        EntityRendererRegistry.register(
+                ModEntities.IRIS_PIERCING_ARROW,
+                EmptyEntityRenderer::new
+        );
+
+        EntityRendererRegistry.register(
+                ModEntities.IRIS_GHOST_STRAY,
+                StrayRenderer::new
+        );
+
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player != null) {
                 AccessoryEffectHandler.tick(client.player);
@@ -82,9 +96,11 @@ public class RPGCraftClient implements ClientModInitializer {
 
             while (activateIrisSignetKey.consumeClick()) {
                 if (client.player != null) {
-                    com.yourname.RPGCraft.accessory.IrisSignetAbility.activate(client.player);
+                    client.player.connection.sendCommand("rpgcraft_iris");
                 }
             }
         });
+
+        EntityRendererRegistry.register(ModEntities.IRIS_GHOST_STRAY, StrayRenderer::new);
     }
 }

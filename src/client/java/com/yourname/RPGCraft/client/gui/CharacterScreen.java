@@ -3,6 +3,7 @@ package com.yourname.RPGCraft.client.gui;
 import com.yourname.RPGCraft.accessory.AccessoryItem;
 import com.yourname.RPGCraft.accessory.AccessoryService;
 import com.yourname.RPGCraft.accessory.AccessorySlotType;
+import com.yourname.RPGCraft.accessory.IrisSignetProgressionService;
 import com.yourname.RPGCraft.client.ClientCharacterState;
 import com.yourname.RPGCraft.player.CharacterData;
 import com.yourname.RPGCraft.stat.StatType;
@@ -238,6 +239,41 @@ public class CharacterScreen extends Screen {
         drawSectionTitle(graphics, "Notes", contentX, contentY + 136);
         drawLine(graphics, "Accessories are separate from armor.", contentX, contentY + 154, COLOR_SUBTEXT);
         drawLine(graphics, "They grant passive bonuses and effects.", contentX, contentY + 168, COLOR_SUBTEXT);
+
+        Player player = Minecraft.getInstance().player;
+
+        if (player != null) {
+            com.yourname.RPGCraft.accessory.AccessoryLevelData irisData =
+                    com.yourname.RPGCraft.accessory.IrisSignetData.get(player.getUUID());
+
+            drawSectionTitle(graphics, "Legendary Progression", contentX, contentY + 124);
+
+            drawLine(
+                    graphics,
+                    "Iris Signet Level: " + irisData.getLevel() + "/" + irisData.getMaxLevel(),
+                    contentX,
+                    contentY + 142,
+                    0xFF6FA8FF
+            );
+
+            if (irisData.isMaxLevel()) {
+                drawLine(
+                        graphics,
+                        "Power fully awakened",
+                        contentX,
+                        contentY + 156,
+                        0xFFE0A84F
+                );
+            } else {
+                drawLine(
+                        graphics,
+                        "Exp: " + irisData.getExperience() + "/" + irisData.getRequiredExperience(),
+                        contentX,
+                        contentY + 156,
+                        COLOR_SUBTEXT
+                );
+            }
+        }
     }
 
     private AccessorySlotType getAccessorySlotAt(int mouseX, int mouseY, int panelX, int panelY) {
@@ -311,6 +347,10 @@ public class CharacterScreen extends Screen {
         Player player = Minecraft.getInstance().player;
 
         if (player != null) {
+            if (removed == com.yourname.RPGCraft.item.ModItems.IRIS_SIGNET) {
+                IrisSignetProgressionService.refreshForPlayer(player);
+            }
+
             ItemStack stack = new ItemStack(removed);
 
             boolean added = player.getInventory().add(stack);
