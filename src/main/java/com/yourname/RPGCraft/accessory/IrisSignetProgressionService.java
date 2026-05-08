@@ -16,9 +16,7 @@ public class IrisSignetProgressionService {
     public static void refreshForPlayer(Player player) {
         CharacterData data = PlayerCharacterDataManager.get(player);
 
-        AccessoryInventory inventory = data.getAccessoryInventory();
-
-        boolean hasIrisSignet = inventory.getAll().stream()
+        boolean hasIrisSignet = data.getAccessoryInventory().getAll().stream()
                 .anyMatch(item -> item == ModItems.IRIS_SIGNET);
 
         if (!hasIrisSignet) {
@@ -34,18 +32,16 @@ public class IrisSignetProgressionService {
 
     public static void refreshModifiers(StatContainer stats, int ringLevel) {
         removeOldModifiers(stats);
-        applyLevelModifiers(stats, ringLevel);
+
+        for (StatModifier modifier : IrisSignetScaling.getStatModifiersForLevel(ringLevel)) {
+            stats.addModifier(modifier);
+        }
+
         DerivedStatCalculator.applyDerivedStats(stats);
     }
 
     public static void removeOldModifiers(StatContainer stats) {
         stats.removeModifiersBySource(IRIS_SIGNET_SOURCE);
         stats.removeModifiersBySource(IRIS_SIGNET_RANDOM_SOURCE);
-    }
-
-    private static void applyLevelModifiers(StatContainer stats, int ringLevel) {
-        for (StatModifier modifier : IrisSignetScaling.getStatModifiersForLevel(ringLevel)) {
-            stats.addModifier(modifier);
-        }
     }
 }

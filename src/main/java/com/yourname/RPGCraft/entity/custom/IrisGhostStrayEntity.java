@@ -275,15 +275,21 @@ public class IrisGhostStrayEntity extends Stray {
             return;
         }
 
+        if (berserkActive) {
+            return;
+        }
+
         float hpPercent = this.getHealth() / this.getMaxHealth();
 
-        if (hpPercent <= 0.20F && !berserkActive) {
+        if (hpPercent <= 0.20F) {
             activateBerserk();
             berserkActive = true;
         }
     }
 
     private void activateBerserk() {
+        this.setCustomName(Component.literal("§cIris' Frenzied Duelist"));
+
         var damage = this.getAttribute(Attributes.ATTACK_DAMAGE);
         if (damage != null) {
             damage.setBaseValue(damage.getBaseValue() + 6.0D);
@@ -291,7 +297,7 @@ public class IrisGhostStrayEntity extends Stray {
 
         var speed = this.getAttribute(Attributes.MOVEMENT_SPEED);
         if (speed != null) {
-            speed.setBaseValue(speed.getBaseValue() + 0.10D);
+            speed.setBaseValue(speed.getBaseValue() + 0.12D);
         }
 
         this.setGlowingTag(true);
@@ -316,8 +322,8 @@ public class IrisGhostStrayEntity extends Stray {
         IrisPiercingArrowEntity arrow = new IrisPiercingArrowEntity(
                 this.level(),
                 this,
-                5.0F + ringLevel,
-                20 * 10
+                IrisSignetScaling.getPiercingArrowDamage(ringLevel),
+                IrisSignetScaling.getPiercingArrowLifeTicks(ringLevel)
         );
 
         double startX = this.getX();
@@ -340,7 +346,7 @@ public class IrisGhostStrayEntity extends Stray {
         dy /= length;
         dz /= length;
 
-        double speed = 2.4D;
+        double speed = 2.6D;
 
         arrow.setDeltaMovement(
                 dx * speed,
